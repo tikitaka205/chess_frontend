@@ -1,0 +1,107 @@
+<!doctype html>
+
+<html lang="ko" style="height: 100%;">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Chess</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .redfont{
+            color: red;
+        }
+        .title-center {
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        .wrap {
+            width: 400px;
+            margin: 0 auto;
+        }
+
+        .form-area {
+            margin-top: 25px;
+        }
+
+        .timeline-container {
+            margin-top: 25px;
+        }
+
+        /* 곰돌이 사진 크기 */
+        .img {
+            width: 200px;
+        }
+
+        .img2 {
+            width: 70px;
+        }
+        input:focus{
+            outline: none;
+        }
+        
+    </style>
+</head>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+<body style="height: 100%;background: linear-gradient(45deg, #000000, #000000) !important; ">
+    <!-- js -->
+    <script src="/static/js/user.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/js/bootstrap.bundle.min.js"></script>
+
+
+    <div class="page" style="height: 100%;">
+        <div class="p-3">
+            <div class="container"
+            style="max-width: 500px; position: absolute; left: 50%; top: 40%; transform: translate(-50%, -50%); padding: 40px; background-color: white; border-radius: 15px; box-shadow: 7px -5px 10px 0px;">
+            <h5 class="text-center" onclick="window.location.href='/'" style="cursor: pointer;">Chess</h5>
+            <div>
+
+                <div class="mb-3">
+                    <label for="" class="form-label">ID</label>
+                    <div class="row" style="border: 1px solid gray; padding: 8px 15px; border-radius: 10px;">
+                        <input type="text" style="border: none;" class="col-9" id="username" placeholder="2 ~ 10자 영문, 한글">
+                        <input type="button" style="background-color: #deef87; border-radius: 10px; border: 1px solid black;" class="col-3" value="중복 체크" onclick="checkUsername()">
+                    </div>
+                    <div id="username-message" class="form-text"></div>
+                </div>
+                <div class="mb-3">
+                    <label for="" class="form-label">비밀번호</label>
+                    <div class="row" style="border: 1px solid gray; padding: 8px 15px; border-radius: 10px;">
+                        <input type="password" style="border: none;" class="col-10" id="password1" placeholder="비밀번호">
+                        <div id="password-1-success-icon" class="col-2"></div>
+                    </div>
+                    <div id="password-1-message" class="form-text"></div>
+                </div>
+                <div class="mb-3">
+                    <label for="" class="form-label">비밀번호 확인</label>
+                    <div class="row" style="border: 1px solid gray; padding: 8px 15px; border-radius: 10px;">
+                        <input type="password" style="border: none;" class="col-10" id="password2" placeholder="비밀번호 확인">
+                        <div id="password-2-success-icon" class="col-2"></div>
+
+                    </div>
+                    <div id="password-2-message" class="form-text"></div>
+                </div>
+                
+                <button type="button" onclick="handleJoin()"  class="btn btn-primary">회원 가입하기</button>
+                <a class="btn btn-outline-secondary" href="/user/login.html">로그인하기</a>
+            </div>
+            <!-- <div class="option">
+                비밀번호를 잊으셨나요?
+                비밀번호 리셋
+            </div> -->
+
+        </div>
+        </div>
+        
+
+    </div>
+
+    <script src="/static/js/base.js"></script>
+    <script src="/static/js/join.js"></script>
+    <div class="footer">
+    </div>
+
+</body>
