@@ -1,5 +1,5 @@
-
 let username_check = false
+
 
 function checkUsername(){
     var username = $('#username').val()
