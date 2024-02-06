@@ -19,14 +19,17 @@ const chatSocket = new WebSocket(
 console.log(chatSocket)
 
 chatSocket.onmessage = function(e) {
+    // 상대방과 내가 서버에보낸 데이터 바로 가져옴
     let data = JSON.parse(e.data);
     let type=data.type_name
     let message=data.message
     let board_state=data.board_state
-    console.log("message받음",data)
+    
+    // console.log("message받음",data)
     console.log("data.board_state받음",data.board_state)
-    console.log("data.board_state받음",data.type_name)
+    // console.log("data.board_state받음",data.type_name)
 
+    // 데이터 타입 메세지인 경우 메세지에 나타냄
     if (type === 'message') {
         let temp_html = `
         <div style=" margin: 5px 20px 5px 20px;"> ${message} </div>
@@ -34,11 +37,21 @@ chatSocket.onmessage = function(e) {
         $('#chatLog').append(temp_html)
         return
     }
+    // 데이터 타입 보드상태인 경우 보드에 나타냄
     if (type === 'board_state') {
-        let temp_html = `
-        <div style=" margin: 5px 20px 5px 20px;"> ${board_state} </div>
-        `
-        $('#board_state').append(temp_html)
+        $('#board_state *').remove()
+        localStorage.clear()
+        console.log("local clear")
+        localStorage.setItem('board', JSON.stringify(board_state))
+        console.log("local set new board")
+        const chessBoardTable = createChessBoardTable(board_state);
+        const chessBoardContainer = document.getElementById('board_state');
+        chessBoardContainer.appendChild(chessBoardTable);
+        // let temp_html = `
+        // <div style=" margin: 5px 20px 5px 20px;"> ${board_state} </div>
+        // `
+        // $('#board_state *').remove()
+        // $('#board_state').append(temp_html)
 
         return
     }
@@ -78,9 +91,10 @@ chatMessageSend.onclick = function (e) {
     messageInputDom.value = '';
 };
 
+// TODO
 function StartGame() {
     let user_id = payload['user_id']
-
+    
     $.ajax({
         type: 'post',
         url: `${hostUrl}/chess/`,
@@ -88,18 +102,27 @@ function StartGame() {
         success: function (response) {
             let board_state=response.board_state
             console.log("gamestart: ", board_state)
+            localStorage.setItem('board', JSON.stringify(board_state))
+            const board = localStorage.getItem('board')
+            console.log("board", board)
+            
             $('#start_game').hide()
-            let temp_html = `
-            <div style=" margin: 5px 20px 5px 20px;"> ${board_state} </div>
-            `
-            $('#board_state').append(temp_html)},
+            const chessBoardTable = createChessBoardTable(board_state);
+            const chessBoardContainer = document.getElementById('board_state');
+            chessBoardContainer.appendChild(chessBoardTable);
+            // let temp_html = `
+            // <div style=" margin: 5px 20px 5px 20px;"> ${board_state} </div>
+            // `
+            // $('#board_state').append(temp_html)
+        },
     });
-
-
 }
 
 function MoveHorse() {
+    // var board_state=response.board_state
     var horseInputDom = document.querySelector('#horse_input');
+    // localStorage.setItem('board', JSON.stringify(board_state))
+    const board = localStorage.getItem('board')
     var horse = horseInputDom.value;
     // var element = document.getElementById('chat-wrap');
     if (horse === '') {
@@ -112,14 +135,16 @@ function MoveHorse() {
     //     window.location.href ='/user/login.html'
     //     return
     // }
+
     console.log("MoveHorse", )
     if (chatSocket.readyState === WebSocket.OPEN) {
         console.log('opened')
+        console.log('board',board)
         chatSocket.send(JSON.stringify({
             'horse':horse,
-            'type': "horse",
+            'type': 'horse',
             'user_id': payload['user_id'],
-            'message':"me"
+            'board':board
         }))
     } else {
         setTimeout(MoveHorse, 500)
@@ -163,4 +188,20 @@ function GetHorse() {
             }
         },
     });
+}
+
+function createChessBoardTable(boardData) {
+    const table = document.createElement('board_state');
+
+    for (const row of boardData) {
+        const tr = document.createElement('tr');
+        for (const cell of row) {
+            const td = document.createElement('td');
+            td.textContent = cell;
+            tr.appendChild(td);
+        }
+        table.appendChild(tr);
+    }
+
+    return table;
 }
