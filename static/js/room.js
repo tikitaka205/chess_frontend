@@ -1,14 +1,17 @@
 // const roomName = JSON.parse(document.getElementById('room-name').textContent);
 // const goodsId = url.searchParams.get('room_name');
+const token = localStorage.getItem('access');
 
 var host="127.0.0.1:8000"
 if(localStorage.getItem('room_name')){
     var room_name = localStorage.getItem('room_name')
+    $('#room_number').append("room :",room_name)
+
    }
 // const roomName=Response.data
 console.log(room_name)
 console.log(payload)
-console.log("user_id", payload["user_id"])
+// console.log("user_id", payload["user_id"])
 const chatSocket = new WebSocket(
     'ws://'
     + host
@@ -21,11 +24,13 @@ console.log(chatSocket)
 chatSocket.onmessage = function(e) {
     // 상대방과 내가 서버에보낸 데이터 바로 가져옴
     let data = JSON.parse(e.data);
+    console.log(data)
     let type=data.type_name
     let message=data.message
+    let alarm=data.alarm
     let board_state=data.board_state
     
-    // console.log("message받음",data)
+    console.log("data",data)
     console.log("data.board_state받음",data.board_state)
     // console.log("data.board_state받음",data.type_name)
 
@@ -41,17 +46,19 @@ chatSocket.onmessage = function(e) {
     if (type === 'board_state') {
         $('#board_state *').remove()
         localStorage.clear()
-        console.log("local clear")
+        // console.log("local clear")
         localStorage.setItem('board', JSON.stringify(board_state))
-        console.log("local set new board")
+        // console.log("local set new board")
+
         const chessBoardTable = createChessBoardTable(board_state);
         const chessBoardContainer = document.getElementById('board_state');
         chessBoardContainer.appendChild(chessBoardTable);
-        // let temp_html = `
-        // <div style=" margin: 5px 20px 5px 20px;"> ${board_state} </div>
-        // `
-        // $('#board_state *').remove()
-        // $('#board_state').append(temp_html)
+
+        $('#alarm *').remove()
+        let temp_html = `
+        <div style=" margin: 5px 20px 5px 20px;"> ${alarm} </div>
+        `
+        $('#alarm').append(temp_html)
 
         return
     }
@@ -92,28 +99,51 @@ chatMessageSend.onclick = function (e) {
 };
 
 // TODO
+// 준비완료, 게임시작, 나가면 방제거
+// 내가있는 방 준비로 바꿈 = 지금 방 이름으로 들고오자
+// 플레이어 나가기 하면 db에서 제거 플레이어 둘다 없으면
+// 방 만들기 증가하는 id로 웹소켓 연결
+// 
+
+
 function StartGame() {
     let user_id = payload['user_id']
-    
+    const game_id = localStorage.getItem('room_name');
+    console.log("game_id",game_id)
     $.ajax({
-        type: 'post',
+        type: 'put',
         url: `${hostUrl}/chess/`,
-        data: {},
+        data: {"user_id":user_id,"game_id":game_id},
         success: function (response) {
-            let board_state=response.board_state
-            console.log("gamestart: ", board_state)
-            localStorage.setItem('board', JSON.stringify(board_state))
-            const board = localStorage.getItem('board')
-            console.log("board", board)
-            
-            $('#start_game').hide()
-            const chessBoardTable = createChessBoardTable(board_state);
-            const chessBoardContainer = document.getElementById('board_state');
-            chessBoardContainer.appendChild(chessBoardTable);
-            // let temp_html = `
-            // <div style=" margin: 5px 20px 5px 20px;"> ${board_state} </div>
-            // `
-            // $('#board_state').append(temp_html)
+            console.log("reponse:", response)
+            if(response.ready_state==="game_start"){
+                let board_state=response.board_state
+                console.log("gamestart: ", board_state)
+                localStorage.setItem('board', JSON.stringify(board_state))
+                const board = localStorage.getItem('board')
+                console.log("board", board)
+                
+                $('#start_game').hide()
+                const chessBoardTable = createChessBoardTable(board_state);
+                const chessBoardContainer = document.getElementById('board_state');
+                chessBoardContainer.appendChild(chessBoardTable);
+            }else if (response.ready_state === "player_1_True") {
+                let buttonElement = document.getElementById("ready_button");
+                buttonElement.style.backgroundColor = "skyblue";
+                buttonElement.innerText = "준비완료";
+            } else if (response.ready_state === "player_2_True") {
+                let buttonElement = document.getElementById("ready_button");
+                buttonElement.style.backgroundColor = "skyblue";
+                buttonElement.innerText = "준비완료";
+            } else if (response.ready_state === "player_1_False") {
+                let buttonElement = document.getElementById("ready_button");
+                buttonElement.style.backgroundColor = "pink";
+                buttonElement.innerText = "준비하기";
+            } else if (response.ready_state === "player_2_False") {
+                let buttonElement = document.getElementById("ready_button");
+                buttonElement.style.backgroundColor = "pink";
+                buttonElement.innerText = "준비하기";            }
+
         },
     });
 }
@@ -143,7 +173,7 @@ function MoveHorse() {
         chatSocket.send(JSON.stringify({
             'horse':horse,
             'type': 'horse',
-            'user_id': payload['user_id'],
+            // 'user_id': payload['user_id'],
             'board':board
         }))
     } else {
@@ -204,4 +234,27 @@ function createChessBoardTable(boardData) {
     }
 
     return table;
+}
+
+function drawBoard(boardData) {
+    const boardElement = document.getElementById('board_state');
+
+    for (let row = 0; row < 8; row++) {
+        const rowElement = document.createElement('div');
+        rowElement.className = 'row';
+
+        for (let col = 0; col < 8; col++) {
+            const square = document.createElement('div');
+            square.className = 'square';
+            
+            const pieceCode = boardData[row][col];
+            const pieceImg = document.createElement('img');
+            pieceImg.src = `images/${pieceCode}.png`; // 이미지 경로 설정
+
+            square.appendChild(pieceImg);
+            rowElement.appendChild(square);
+        }
+
+        boardElement.appendChild(rowElement);
+    }
 }

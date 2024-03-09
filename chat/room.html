@@ -1,4 +1,3 @@
-<!-- chat/templates/chat/room.html -->
 <!DOCTYPE html>
 <html>
 <head>
@@ -92,9 +91,12 @@
             <div id="board_state">
                 
             </div>
-        
+
+            <div id="alarm">
+                
+            </div>
         <div class="row" id="start_game" style="padding: 8px 15px; border-radius: 2px; background: #ffffff;">
-                <button  type="button" class="" onclick="StartGame()"  style="background: #ff8a8a; border: 2px solid rgb(0, 0, 0); height: 45vh;">게임 시작</button>
+                <button id="ready_button"  type="button" class="" onclick="StartGame()"  style="background: #ff8a8a; border: 2px solid rgb(0, 0, 0); height: 45vh;">게임 준비</button>
             </div>
 
             <div class="row" style="border: 1px solid rgb(0, 0, 0); padding: 8px 15px; border-radius: 2px;">        
@@ -104,7 +106,9 @@
             <div>
                 <button style="position: absolute; margin-top: 10px; left: 70%;" onclick="MoveHorse()" type="button" class="btn btn-primary" ">말 움직이기</button>
             </div>
-
+            <div id="room_number">
+                
+            </div>
         </div>
     
 

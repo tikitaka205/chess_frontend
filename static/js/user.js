@@ -36,7 +36,7 @@ async function handleLogin() {
         window.location.href = "/chat/index.html"
 
     } else if (response.status === 401){
-        alert('번호 혹은 비밀번호를 확인해 주세요.')
+        alert('아이디, 비밀번호를 확인해 주세요.')
     }
 }
 
