@@ -3,6 +3,169 @@
 const token = localStorage.getItem('access');
 
 var host="127.0.0.1:8000"
+
+let recognition; // 음성 인식 객체를 전역 변수로 선언
+let isRecognizing = false; // 음성 인식 중인지 여부를 나타내는 변수
+let lastTranscript; // 마지막으로 인식된 텍스트를 저장할 변수
+
+document.body.onkeyup = function(e){
+    if(e.keyCode == 32){
+        console.log("click space")
+        if (!isRecognizing) {
+            startSpeechRecognition(); // 음성 인식 시작
+            isRecognizing = true;
+        } else {
+            stopSpeechRecognition(); // 음성 인식 중지
+            isRecognizing = false;
+            console.log('마지막으로 인식된 텍스트:', lastTranscript);
+            MoveHorse(lastTranscript);
+        }
+    }
+};
+
+// 음성인식 시작
+function startSpeechRecognition() {
+    recognition = new webkitSpeechRecognition();
+    recognition.continuous = true;
+    recognition.lang = 'en-US';
+    
+    recognition.onstart = function() {
+        console.log('음성 인식이 시작되었습니다.');
+    };
+
+    recognition.onresult = function(event) {
+        var transcript = event.results[0][0].transcript;
+        console.log('인식된 텍스트:', transcript);
+        lastTranscript = transcript; // 마지막으로 인식된 텍스트를 저장합니다.
+    };
+
+    recognition.onerror = function(event) {
+        console.error('음성 인식 오류:', event.error);
+    };
+
+    recognition.start();
+}
+
+// 음성인식 중지
+function stopSpeechRecognition() {
+    recognition.stop();
+    console.log('음성 인식이 중지되었습니다.');
+}
+// 구글 음성인식
+/** Performs microphone streaming speech recognition with a duration of 1 minute. */
+// public static void streamingMicRecognize() throws Exception {
+
+//     ResponseObserver<StreamingRecognizeResponse> responseObserver = null;
+//     try (SpeechClient client = SpeechClient.create()) {
+  
+//       responseObserver =
+//           new ResponseObserver<StreamingRecognizeResponse>() {
+//             ArrayList<StreamingRecognizeResponse> responses = new ArrayList<>();
+  
+//             public void onStart(StreamController controller) {}
+  
+//             public void onResponse(StreamingRecognizeResponse response) {
+//               responses.add(response);
+//             }
+  
+//             public void onComplete() {
+//               for (StreamingRecognizeResponse response : responses) {
+//                 StreamingRecognitionResult result = response.getResultsList().get(0);
+//                 SpeechRecognitionAlternative alternative = result.getAlternativesList().get(0);
+//                 System.out.printf("Transcript : %s\n", alternative.getTranscript());
+//               }
+//             }
+  
+//             public void onError(Throwable t) {
+//               System.out.println(t);
+//             }
+//           };
+  
+//       ClientStream<StreamingRecognizeRequest> clientStream =
+//           client.streamingRecognizeCallable().splitCall(responseObserver);
+  
+//       RecognitionConfig recognitionConfig =
+//           RecognitionConfig.newBuilder()
+//               .setEncoding(RecognitionConfig.AudioEncoding.LINEAR16)
+//               .setLanguageCode("en-US")
+//               .setSampleRateHertz(16000)
+//               .build();
+//       StreamingRecognitionConfig streamingRecognitionConfig =
+//           StreamingRecognitionConfig.newBuilder().setConfig(recognitionConfig).build();
+  
+//       StreamingRecognizeRequest request =
+//           StreamingRecognizeRequest.newBuilder()
+//               .setStreamingConfig(streamingRecognitionConfig)
+//               .build(); // The first request in a streaming call has to be a config
+  
+//       clientStream.send(request);
+//       // SampleRate:16000Hz, SampleSizeInBits: 16, Number of channels: 1, Signed: true,
+//       // bigEndian: false
+//       AudioFormat audioFormat = new AudioFormat(16000, 16, 1, true, false);
+//       DataLine.Info targetInfo =
+//           new Info(
+//               TargetDataLine.class,
+//               audioFormat); // Set the system information to read from the microphone audio stream
+  
+//       if (!AudioSystem.isLineSupported(targetInfo)) {
+//         System.out.println("Microphone not supported");
+//         System.exit(0);
+//       }
+//       // Target data line captures the audio stream the microphone produces.
+//       TargetDataLine targetDataLine = (TargetDataLine) AudioSystem.getLine(targetInfo);
+//       targetDataLine.open(audioFormat);
+//       targetDataLine.start();
+//       System.out.println("Start speaking");
+//       long startTime = System.currentTimeMillis();
+//       // Audio Input Stream
+//       AudioInputStream audio = new AudioInputStream(targetDataLine);
+//       while (true) {
+//         long estimatedTime = System.currentTimeMillis() - startTime;
+//         byte[] data = new byte[6400];
+//         audio.read(data);
+//         if (estimatedTime > 60000) { // 60 seconds
+//           System.out.println("Stop speaking.");
+//           targetDataLine.stop();
+//           targetDataLine.close();
+//           break;
+//         }
+//         request =
+//             StreamingRecognizeRequest.newBuilder()
+//                 .setAudioContent(ByteString.copyFrom(data))
+//                 .build();
+//         clientStream.send(request);
+//       }
+//     } catch (Exception e) {
+//       System.out.println(e);
+//     }
+//     responseObserver.onComplete();
+//   }
+function transcribeAudio(audioFile) {
+    const apiUrl = 'https://speech.googleapis.com/v1/speech:recognize?key=' + apiKey;
+
+    // 오디오 파일을 Blob으로 변환
+    const blob = new Blob([audioFile], { type: 'audio/wav' });
+
+    // HTTP 요청 생성
+    const formData = new FormData();
+    formData.append('audio', blob);
+
+    // HTTP POST 요청
+    fetch(apiUrl, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        // 변환된 텍스트 출력
+        console.log('Transcription result:', data.results[0].alternatives[0].transcript);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
+
+// 방 입장시 룸이름 설정하고 바로 웹소켓 연결
 if(localStorage.getItem('room_name')){
     var room_name = localStorage.getItem('room_name')
     $('#room_number').append("room :",room_name)
@@ -12,6 +175,8 @@ if(localStorage.getItem('room_name')){
 console.log(room_name)
 console.log(payload)
 // console.log("user_id", payload["user_id"])
+
+// create websocket use room_name
 const chatSocket = new WebSocket(
     'ws://'
     + host
@@ -120,6 +285,7 @@ function StartGame() {
                 let board_state=response.board_state
                 console.log("gamestart: ", board_state)
                 localStorage.setItem('board', JSON.stringify(board_state))
+                localStorage.setItem('player', response.player)
                 const board = localStorage.getItem('board')
                 console.log("board", board)
                 
@@ -148,16 +314,26 @@ function StartGame() {
     });
 }
 
-function MoveHorse() {
+//
+function MoveHorse(str) {
+    // console.log("str:",str)
     // var board_state=response.board_state
     var horseInputDom = document.querySelector('#horse_input');
+    console.log(horseInputDom)
     // localStorage.setItem('board', JSON.stringify(board_state))
     const board = localStorage.getItem('board')
-    var horse = horseInputDom.value;
-    // var element = document.getElementById('chat-wrap');
-    if (horse === '') {
-        return
+    // const player = localStorage.getItem('player')
+    var horse_input;
+    if (str) {
+        horse_input = str;
+    } else if (horseInputDom) {
+        horse_input = horseInputDom.value;
+    } else {
+        console.error('No input provided.');
+        return;
     }
+    console.log("horse_input 정하기",horse_input)
+    const horse=MoveHorseFunc(horse_input)
     // if(!payload || !token){
     //     if(!confirm('로그인 후 이용가능합니다. 로그인하러 갈까요?')){
     //         return    
@@ -165,8 +341,7 @@ function MoveHorse() {
     //     window.location.href ='/user/login.html'
     //     return
     // }
-
-    console.log("MoveHorse", )
+    console.log("MoveHorse", horse)
     if (chatSocket.readyState === WebSocket.OPEN) {
         console.log('opened')
         console.log('board',board)
@@ -182,43 +357,33 @@ function MoveHorse() {
     horseInputDom.value = '';
 };
 
-function MoveHorse2() {
+function MoveHorseFunc(position) {
+    const result = [];
+    const player = localStorage.getItem('player');
+    console.log(player)
+    const fromSquare = position.slice(0, 2); // 출발 위치
+    const toSquare = position.slice(3); // 도착 위치
+    const piece = position.charAt(2).toUpperCase(); // 말의 종류, 대문자로 변환
 
-    $.ajax({
-        type: 'post',
-        url: `${hostUrl}/goods/${goodsId}`,
-        data: {},
-        success: function (response) {
-            console.log("review get: ", response)
-            let user_id = payload['user_id']
-            let seller_id = response['seller']['id']
-            if (user_id == seller_id) {
-                window.location.href = `/review/seller.html?goods_id=${goodsId}`
-            } else {
-                window.location.href = `/review/buyer.html?goods_id=${goodsId}`
-            }
-        },
-    });
+    let playerSymbol;
+    if (player === 'player_1') {
+        playerSymbol = 'w'; // 플레이어 1은 'w'
+    } else {
+        playerSymbol = 'b'; // 플레이어 2는 'b'
+    }
+
+    // 출발 위치와 도착 위치를 결과에 추가
+    result.push(toSquare);
+
+    console.log(result)
+    // 플레이어에 따라 말의 종류를 추가
+    result.splice(0, 0, `${fromSquare}${playerSymbol}${piece}`);
+    console.log(result)
+    const resultStr = result.map(item => `'${item}'`).join(',');
+    console.log(resultStr);
+    return resultStr;
 }
 
-function GetHorse() {
-
-    $.ajax({
-        type: 'post',
-        url: `${hostUrl}/goods/${goodsId}`,
-        data: {user_id:user_id},
-        success: function (response) {
-            console.log("review get: ", response)
-            let user_id = payload['user_id']
-            let seller_id = response['seller']['id']
-            if (user_id == seller_id) {
-                window.location.href = `/review/seller.html?goods_id=${goodsId}`
-            } else {
-                window.location.href = `/review/buyer.html?goods_id=${goodsId}`
-            }
-        },
-    });
-}
 
 function createChessBoardTable(boardData) {
     const table = document.createElement('board_state');
@@ -235,6 +400,44 @@ function createChessBoardTable(boardData) {
 
     return table;
 }
+// function MoveHorse2() {
+
+//     $.ajax({
+//         type: 'post',
+//         url: `${hostUrl}/goods/${goodsId}`,
+//         data: {},
+//         success: function (response) {
+//             console.log("review get: ", response)
+//             let user_id = payload['user_id']
+//             let seller_id = response['seller']['id']
+//             if (user_id == seller_id) {
+//                 window.location.href = `/review/seller.html?goods_id=${goodsId}`
+//             } else {
+//                 window.location.href = `/review/buyer.html?goods_id=${goodsId}`
+//             }
+//         },
+//     });
+// }
+
+// function GetHorse() {
+
+//     $.ajax({
+//         type: 'post',
+//         url: `${hostUrl}/goods/${goodsId}`,
+//         data: {user_id:user_id},
+//         success: function (response) {
+//             console.log("review get: ", response)
+//             let user_id = payload['user_id']
+//             let seller_id = response['seller']['id']
+//             if (user_id == seller_id) {
+//                 window.location.href = `/review/seller.html?goods_id=${goodsId}`
+//             } else {
+//                 window.location.href = `/review/buyer.html?goods_id=${goodsId}`
+//             }
+//         },
+//     });
+// }
+
 
 function drawBoard(boardData) {
     const boardElement = document.getElementById('board_state');
