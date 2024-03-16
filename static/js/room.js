@@ -8,49 +8,49 @@ let recognition; // 음성 인식 객체를 전역 변수로 선언
 let isRecognizing = false; // 음성 인식 중인지 여부를 나타내는 변수
 let lastTranscript; // 마지막으로 인식된 텍스트를 저장할 변수
 
-document.body.onkeyup = function(e){
-    if(e.keyCode == 32){
-        console.log("click space")
-        if (!isRecognizing) {
-            startSpeechRecognition(); // 음성 인식 시작
-            isRecognizing = true;
-        } else {
-            stopSpeechRecognition(); // 음성 인식 중지
-            isRecognizing = false;
-            console.log('마지막으로 인식된 텍스트:', lastTranscript);
-            MoveHorse(lastTranscript);
-        }
-    }
-};
+// document.body.onkeyup = function(e){
+//     if(e.keyCode == 32){
+//         console.log("click space")
+//         if (!isRecognizing) {
+//             startSpeechRecognition(); // 음성 인식 시작
+//             isRecognizing = true;
+//         } else {
+//             stopSpeechRecognition(); // 음성 인식 중지
+//             isRecognizing = false;
+//             console.log('마지막으로 인식된 텍스트:', lastTranscript);
+//             MoveHorse(lastTranscript);
+//         }
+//     }
+// };
 
-// 음성인식 시작
-function startSpeechRecognition() {
-    recognition = new webkitSpeechRecognition();
-    recognition.continuous = true;
-    recognition.lang = 'en-US';
+// // 음성인식 시작
+// function startSpeechRecognition() {
+//     recognition = new webkitSpeechRecognition();
+//     recognition.continuous = true;
+//     recognition.lang = 'en-US';
     
-    recognition.onstart = function() {
-        console.log('음성 인식이 시작되었습니다.');
-    };
+//     recognition.onstart = function() {
+//         console.log('음성 인식이 시작되었습니다.');
+//     };
 
-    recognition.onresult = function(event) {
-        var transcript = event.results[0][0].transcript;
-        console.log('인식된 텍스트:', transcript);
-        lastTranscript = transcript; // 마지막으로 인식된 텍스트를 저장합니다.
-    };
+//     recognition.onresult = function(event) {
+//         var transcript = event.results[0][0].transcript;
+//         console.log('인식된 텍스트:', transcript);
+//         lastTranscript = transcript; // 마지막으로 인식된 텍스트를 저장합니다.
+//     };
 
-    recognition.onerror = function(event) {
-        console.error('음성 인식 오류:', event.error);
-    };
+//     recognition.onerror = function(event) {
+//         console.error('음성 인식 오류:', event.error);
+//     };
 
-    recognition.start();
-}
+//     recognition.start();
+// }
 
-// 음성인식 중지
-function stopSpeechRecognition() {
-    recognition.stop();
-    console.log('음성 인식이 중지되었습니다.');
-}
+// // 음성인식 중지
+// function stopSpeechRecognition() {
+//     recognition.stop();
+//     console.log('음성 인식이 중지되었습니다.');
+// }
 // 구글 음성인식
 /** Performs microphone streaming speech recognition with a duration of 1 minute. */
 // public static void streamingMicRecognize() throws Exception {
@@ -210,7 +210,7 @@ chatSocket.onmessage = function(e) {
     // 데이터 타입 보드상태인 경우 보드에 나타냄
     if (type === 'board_state') {
         $('#board_state *').remove()
-        localStorage.clear()
+        // localStorage.clear()
         // console.log("local clear")
         localStorage.setItem('board', JSON.stringify(board_state))
         // console.log("local set new board")
@@ -380,7 +380,7 @@ function MoveHorseFunc(position) {
     result.splice(0, 0, `${fromSquare}${playerSymbol}${piece}`);
     console.log(result)
     const resultStr = result.map(item => `'${item}'`).join(',');
-    console.log(resultStr);
+    console.log("=====",resultStr);
     return resultStr;
 }
 
