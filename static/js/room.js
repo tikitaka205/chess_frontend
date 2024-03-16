@@ -210,6 +210,7 @@ chatSocket.onmessage = function(e) {
     // 데이터 타입 보드상태인 경우 보드에 나타냄
     if (type === 'board_state') {
         $('#board_state *').remove()
+        $('#ready_button').remove()
         // localStorage.clear()
         // console.log("local clear")
         localStorage.setItem('board', JSON.stringify(board_state))
@@ -224,7 +225,7 @@ chatSocket.onmessage = function(e) {
         <div style=" margin: 5px 20px 5px 20px;"> ${alarm} </div>
         `
         $('#alarm').append(temp_html)
-
+        readTextOutLoud(alarm);
         return
     }
 
@@ -270,6 +271,17 @@ chatMessageSend.onclick = function (e) {
 // 방 만들기 증가하는 id로 웹소켓 연결
 // 
 
+// console.log("MoveHorse", horse)
+// if (chatSocket.readyState === WebSocket.OPEN) {
+//     console.log('opened')
+//     console.log('board',board)
+//     chatSocket.send(JSON.stringify({
+//         'horse':horse,
+//         'type': 'horse',
+//         // 'user_id': payload['user_id'],
+//         'board':board
+//     }))
+// }
 
 function StartGame() {
     let user_id = payload['user_id']
@@ -283,6 +295,15 @@ function StartGame() {
             console.log("reponse:", response)
             if(response.ready_state==="game_start"){
                 let board_state=response.board_state
+        
+                if (chatSocket.readyState === WebSocket.OPEN) {
+                    chatSocket.send(JSON.stringify({
+                        // 'horse':horse,
+                        'type': 'start',
+                        'board':board_state
+                    }))
+                }
+
                 console.log("gamestart: ", board_state)
                 localStorage.setItem('board', JSON.stringify(board_state))
                 localStorage.setItem('player', response.player)
@@ -352,7 +373,7 @@ function MoveHorse(str) {
             'board':board
         }))
     } else {
-        setTimeout(MoveHorse, 500)
+        setTimeout(MoveHorse)
     }
     horseInputDom.value = '';
 };
@@ -460,4 +481,20 @@ function drawBoard(boardData) {
 
         boardElement.appendChild(rowElement);
     }
+}
+
+function readTextOutLoud(text) {
+    // SpeechSynthesis 객체 생성
+    var synth = window.speechSynthesis;
+
+    
+    // 음성 합성할 텍스트 생성
+    var utterance = new SpeechSynthesisUtterance(text);
+    
+    // 음성 합성 속도 설정 (기본값은 1)
+    utterance.rate = 1.2; // 음성 합성 속도를 빠르게 설정
+    utterance.lang = 'en-US';
+    
+    // 음성 합성 시작
+    synth.speak(utterance);
 }
