@@ -194,7 +194,7 @@ chatSocket.onmessage = function(e) {
     let message=data.message
     let alarm=data.alarm
     let board_state=data.board_state
-    
+    let player = localStorage.getItem('player');
     console.log("data",data)
     console.log("data.board_state받음",data.board_state)
     // console.log("data.board_state받음",data.type_name)
@@ -208,6 +208,7 @@ chatSocket.onmessage = function(e) {
         return
     }
     // 데이터 타입 보드상태인 경우 보드에 나타냄
+    // 여기서 보여주는 데이터 변경가능
     if (type === 'board_state') {
         $('#board_state *').remove()
         $('#ready_button').remove()
@@ -215,10 +216,16 @@ chatSocket.onmessage = function(e) {
         // console.log("local clear")
         localStorage.setItem('board', JSON.stringify(board_state))
         // console.log("local set new board")
-
-        const chessBoardTable = createChessBoardTable(board_state);
+        if (player==="player_2"){
+        let reversedChessBoard = reverseBoard(board_state);
+        const chessBoardTable = createChessBoardTable(reversedChessBoard);
         const chessBoardContainer = document.getElementById('board_state');
         chessBoardContainer.appendChild(chessBoardTable);
+        }else{
+            const chessBoardTable = createChessBoardTable(board_state);
+            const chessBoardContainer = document.getElementById('board_state');
+            chessBoardContainer.appendChild(chessBoardTable);
+        }
 
         $('#alarm *').remove()
         let temp_html = `
@@ -295,12 +302,18 @@ function StartGame() {
             console.log("reponse:", response)
             if(response.ready_state==="game_start"){
                 let board_state=response.board_state
-        
+                console.log("player",player)
+                console.log("player_2",board_state)
+                const chessBoardTable = createChessBoardTable(board_state);
+                const chessBoardContainer = document.getElementById('board_state');
+                chessBoardContainer.appendChild(chessBoardTable);
+
+                //게임시작 성공이면 이걸 요청함
                 if (chatSocket.readyState === WebSocket.OPEN) {
                     chatSocket.send(JSON.stringify({
-                        // 'horse':horse,
                         'type': 'start',
-                        'board':board_state
+                        'board':board_state,
+                        'user_id':user_id,
                     }))
                 }
 
@@ -311,9 +324,7 @@ function StartGame() {
                 console.log("board", board)
                 
                 $('#start_game').hide()
-                const chessBoardTable = createChessBoardTable(board_state);
-                const chessBoardContainer = document.getElementById('board_state');
-                chessBoardContainer.appendChild(chessBoardTable);
+
             }else if (response.ready_state === "player_1_True") {
                 let buttonElement = document.getElementById("ready_button");
                 buttonElement.style.backgroundColor = "skyblue";
@@ -492,9 +503,14 @@ function readTextOutLoud(text) {
     var utterance = new SpeechSynthesisUtterance(text);
     
     // 음성 합성 속도 설정 (기본값은 1)
-    utterance.rate = 1.2; // 음성 합성 속도를 빠르게 설정
-    utterance.lang = 'en-US';
+    utterance.rate = 0.5; // 음성 합성 속도를 빠르게 설정
+    utterance.lang = 'ja-JP';
     
     // 음성 합성 시작
     synth.speak(utterance);
+}
+
+function reverseBoard(board) {
+    let reversedBoard = board.slice().reverse().map(row => row.slice().reverse());
+    return reversedBoard;
 }
