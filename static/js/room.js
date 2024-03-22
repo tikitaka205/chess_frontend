@@ -140,30 +140,32 @@ let lastTranscript; // 마지막으로 인식된 텍스트를 저장할 변수
 //     }
 //     responseObserver.onComplete();
 //   }
-function transcribeAudio(audioFile) {
-    const apiUrl = 'https://speech.googleapis.com/v1/speech:recognize?key=' + apiKey;
 
-    // 오디오 파일을 Blob으로 변환
-    const blob = new Blob([audioFile], { type: 'audio/wav' });
+//구글 음성인식
+// function transcribeAudio(audioFile) {
+//     const apiUrl = 'https://speech.googleapis.com/v1/speech:recognize?key=' + apiKey;
 
-    // HTTP 요청 생성
-    const formData = new FormData();
-    formData.append('audio', blob);
+//     // 오디오 파일을 Blob으로 변환
+//     const blob = new Blob([audioFile], { type: 'audio/wav' });
 
-    // HTTP POST 요청
-    fetch(apiUrl, {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        // 변환된 텍스트 출력
-        console.log('Transcription result:', data.results[0].alternatives[0].transcript);
-    })
-    .catch(error => {
-        console.error('Error:', error);
-    });
-}
+//     // HTTP 요청 생성
+//     const formData = new FormData();
+//     formData.append('audio', blob);
+
+//     // HTTP POST 요청
+//     fetch(apiUrl, {
+//         method: 'POST',
+//         body: formData
+//     })
+//     .then(response => response.json())
+//     .then(data => {
+//         // 변환된 텍스트 출력
+//         console.log('Transcription result:', data.results[0].alternatives[0].transcript);
+//     })
+//     .catch(error => {
+//         console.error('Error:', error);
+//     });
+// }
 
 // 방 입장시 룸이름 설정하고 바로 웹소켓 연결
 if(localStorage.getItem('room_name')){
@@ -302,7 +304,6 @@ function StartGame() {
             console.log("reponse:", response)
             if(response.ready_state==="game_start"){
                 let board_state=response.board_state
-                console.log("player",player)
                 console.log("player_2",board_state)
                 const chessBoardTable = createChessBoardTable(board_state);
                 const chessBoardContainer = document.getElementById('board_state');
@@ -366,13 +367,6 @@ function MoveHorse(str) {
     }
     console.log("horse_input 정하기",horse_input)
     const horse=MoveHorseFunc(horse_input)
-    // if(!payload || !token){
-    //     if(!confirm('로그인 후 이용가능합니다. 로그인하러 갈까요?')){
-    //         return    
-    //     }
-    //     window.location.href ='/user/login.html'
-    //     return
-    // }
     console.log("MoveHorse", horse)
     if (chatSocket.readyState === WebSocket.OPEN) {
         console.log('opened')
@@ -393,27 +387,61 @@ function MoveHorseFunc(position) {
     const result = [];
     const player = localStorage.getItem('player');
     console.log(player)
-    const fromSquare = position.slice(0, 2); // 출발 위치
-    const toSquare = position.slice(3); // 도착 위치
-    const piece = position.charAt(2).toUpperCase(); // 말의 종류, 대문자로 변환
-
+    // const fromSquare = position.slice(0, 2); // 출발 위치
+    // const toSquare = position.slice(3); // 도착 위치
+    // const piece = position.charAt(2).toUpperCase(); // 말의 종류, 대문자로 변환
+    
     let playerSymbol;
     if (player === 'player_1') {
+        const fromSquare = position.slice(0, 2); // 출발 위치
+        const toSquare = position.slice(3); // 도착 위치
+        const piece = position.charAt(2).toUpperCase(); // 말의 종류, 대문자로 변환
         playerSymbol = 'w'; // 플레이어 1은 'w'
+        result.push(toSquare);
+
+        console.log(result)
+        // 플레이어에 따라 말의 종류를 추가
+        result.splice(0, 0, `${fromSquare}${playerSymbol}${piece}`);
+        console.log(result)
+        const resultStr = result.map(item => `'${item}'`).join(',');
+        console.log("=====",resultStr);
+        return resultStr;
     } else {
+        position=reverseChessMove(position)
+        console.log("position",position)
+        const fromSquare = position.slice(0, 2); // 출발 위치
+        const toSquare = position.slice(3); // 도착 위치
+        const piece = position.charAt(2).toUpperCase(); // 말의 종류, 대문자로 변환
         playerSymbol = 'b'; // 플레이어 2는 'b'
+        result.push(toSquare);
+
+        console.log(result)
+        // 플레이어에 따라 말의 종류를 추가
+        result.splice(0, 0, `${fromSquare}${playerSymbol}${piece}`);
+        console.log(result)
+        const resultStr = result.map(item => `'${item}'`).join(',');
+        console.log("=====",resultStr);
+        return resultStr;
     }
+}
 
-    // 출발 위치와 도착 위치를 결과에 추가
-    result.push(toSquare);
+//반전된 인풋값을 알아내는 함수
+function reverseChessMove(str) {
+    const first = str.charAt(0); // 출발 위치
+    const second = str.charAt(1); // 목적 위치
+    const center=str.charAt(2)
+    const third=str.charAt(3)
+    const fourth=str.charAt(4)
 
-    console.log(result)
-    // 플레이어에 따라 말의 종류를 추가
-    result.splice(0, 0, `${fromSquare}${playerSymbol}${piece}`);
-    console.log(result)
-    const resultStr = result.map(item => `'${item}'`).join(',');
-    console.log("=====",resultStr);
-    return resultStr;
+    const alphaMap = { 'a': 'h', 'b': 'g', 'c': 'f', 'd': 'e', 'e': 'd', 'f': 'c', 'g': 'b', 'h': 'a' };
+    const numMap = { '1': '8', '2': '7', '3': '6', '4': '5', '5': '4', '6': '3', '7': '2', '8': '1' };
+
+    const firststr = alphaMap[first];
+    const secondstr = numMap[second];
+    const thirdstr = alphaMap[third];
+    const fourthstr = numMap[fourth];
+
+    return firststr + secondstr + center + thirdstr + fourthstr;
 }
 
 
