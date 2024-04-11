@@ -36,6 +36,7 @@ function MakeGame() {
             console.log("gamestart: ", board_state)
             localStorage.setItem('board', JSON.stringify(board_state))
             localStorage.setItem('room_name',room_name);
+            localStorage.setItem('player', "player_1")
             const board = localStorage.getItem('board')
             console.log("board", board)
             window.location.href = "/chat/room.html"

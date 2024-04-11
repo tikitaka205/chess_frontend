@@ -4,9 +4,9 @@ const token = localStorage.getItem('access');
 
 var host="127.0.0.1:8000"
 
-let recognition; // 음성 인식 객체를 전역 변수로 선언
-let isRecognizing = false; // 음성 인식 중인지 여부를 나타내는 변수
-let lastTranscript; // 마지막으로 인식된 텍스트를 저장할 변수
+// let recognition; // 음성 인식 객체를 전역 변수로 선언
+// let isRecognizing = false; // 음성 인식 중인지 여부를 나타내는 변수
+// let lastTranscript; // 마지막으로 인식된 텍스트를 저장할 변수
 
 // document.body.onkeyup = function(e){
 //     if(e.keyCode == 32){
@@ -223,10 +223,12 @@ chatSocket.onmessage = function(e) {
         const chessBoardTable = createChessBoardTable(reversedChessBoard);
         const chessBoardContainer = document.getElementById('board_state');
         chessBoardContainer.appendChild(chessBoardTable);
+
         }else{
             const chessBoardTable = createChessBoardTable(board_state);
             const chessBoardContainer = document.getElementById('board_state');
             chessBoardContainer.appendChild(chessBoardTable);
+
         }
 
         $('#alarm *').remove()
@@ -234,7 +236,7 @@ chatSocket.onmessage = function(e) {
         <div style=" margin: 5px 20px 5px 20px;"> ${alarm} </div>
         `
         $('#alarm').append(temp_html)
-        readTextOutLoud(alarm);
+        // readTextOutLoud(alarm);
         return
     }
 
@@ -304,17 +306,19 @@ function StartGame() {
             console.log("reponse:", response)
             if(response.ready_state==="game_start"){
                 let board_state=response.board_state
-                console.log("player_2",board_state)
-                const chessBoardTable = createChessBoardTable(board_state);
-                const chessBoardContainer = document.getElementById('board_state');
-                chessBoardContainer.appendChild(chessBoardTable);
+                console.log("player_22",board_state)
+                // const chessBoardTable = createChessBoardTable(board_state);
+                // const chessBoardContainer = document.getElementById('board_state');
+                // chessBoardContainer.appendChild(chessBoardTable);
+                // displayChessBoardWithCoordinates(board_state);
 
-                //게임시작 성공이면 이걸 요청함
+                //게임시작 성공이면 요청함
                 if (chatSocket.readyState === WebSocket.OPEN) {
                     chatSocket.send(JSON.stringify({
                         'type': 'start',
                         'board':board_state,
                         'user_id':user_id,
+                        'game_id':game_id,
                     }))
                 }
 
@@ -354,7 +358,8 @@ function MoveHorse(str) {
     var horseInputDom = document.querySelector('#horse_input');
     console.log(horseInputDom)
     // localStorage.setItem('board', JSON.stringify(board_state))
-    const board = localStorage.getItem('board')
+    // const board = localStorage.getItem('board')
+    const room_id = localStorage.getItem('room_name')
     // const player = localStorage.getItem('player')
     var horse_input;
     if (str) {
@@ -368,15 +373,28 @@ function MoveHorse(str) {
     console.log("horse_input 정하기",horse_input)
     const horse=MoveHorseFunc(horse_input)
     console.log("MoveHorse", horse)
+    // 'user_id': payload['user_id'],
     if (chatSocket.readyState === WebSocket.OPEN) {
         console.log('opened')
-        console.log('board',board)
-        chatSocket.send(JSON.stringify({
-            'horse':horse,
-            'type': 'horse',
-            // 'user_id': payload['user_id'],
-            'board':board
-        }))
+        // console.log('board',board)
+        let length = horse_input.length;
+        console.log(length)
+        if(length===1){
+            chatSocket.send(JSON.stringify({
+                'horse':horse_input,
+                'type': 'promotion',
+                'user_id': payload['user_id'],
+                'room_id':room_id,
+            }))
+        } else {
+            chatSocket.send(JSON.stringify({
+                'horse':horse,
+                'type': 'horse',
+                'user_id': payload['user_id'],
+                // 'board':board,
+                'room_id':room_id,
+            }))
+        }
     } else {
         setTimeout(MoveHorse)
     }
@@ -444,7 +462,6 @@ function reverseChessMove(str) {
     return firststr + secondstr + center + thirdstr + fourthstr;
 }
 
-
 function createChessBoardTable(boardData) {
     const table = document.createElement('board_state');
 
@@ -460,68 +477,8 @@ function createChessBoardTable(boardData) {
 
     return table;
 }
-// function MoveHorse2() {
 
-//     $.ajax({
-//         type: 'post',
-//         url: `${hostUrl}/goods/${goodsId}`,
-//         data: {},
-//         success: function (response) {
-//             console.log("review get: ", response)
-//             let user_id = payload['user_id']
-//             let seller_id = response['seller']['id']
-//             if (user_id == seller_id) {
-//                 window.location.href = `/review/seller.html?goods_id=${goodsId}`
-//             } else {
-//                 window.location.href = `/review/buyer.html?goods_id=${goodsId}`
-//             }
-//         },
-//     });
-// }
-
-// function GetHorse() {
-
-//     $.ajax({
-//         type: 'post',
-//         url: `${hostUrl}/goods/${goodsId}`,
-//         data: {user_id:user_id},
-//         success: function (response) {
-//             console.log("review get: ", response)
-//             let user_id = payload['user_id']
-//             let seller_id = response['seller']['id']
-//             if (user_id == seller_id) {
-//                 window.location.href = `/review/seller.html?goods_id=${goodsId}`
-//             } else {
-//                 window.location.href = `/review/buyer.html?goods_id=${goodsId}`
-//             }
-//         },
-//     });
-// }
-
-
-function drawBoard(boardData) {
-    const boardElement = document.getElementById('board_state');
-
-    for (let row = 0; row < 8; row++) {
-        const rowElement = document.createElement('div');
-        rowElement.className = 'row';
-
-        for (let col = 0; col < 8; col++) {
-            const square = document.createElement('div');
-            square.className = 'square';
-            
-            const pieceCode = boardData[row][col];
-            const pieceImg = document.createElement('img');
-            pieceImg.src = `images/${pieceCode}.png`; // 이미지 경로 설정
-
-            square.appendChild(pieceImg);
-            rowElement.appendChild(square);
-        }
-
-        boardElement.appendChild(rowElement);
-    }
-}
-
+//tts
 function readTextOutLoud(text) {
     // SpeechSynthesis 객체 생성
     var synth = window.speechSynthesis;
@@ -531,13 +488,14 @@ function readTextOutLoud(text) {
     var utterance = new SpeechSynthesisUtterance(text);
     
     // 음성 합성 속도 설정 (기본값은 1)
-    utterance.rate = 0.5; // 음성 합성 속도를 빠르게 설정
-    utterance.lang = 'ja-JP';
+    utterance.rate = 1; // 음성 합성 속도를 빠르게 설정
+    utterance.lang = 'ko-KR';
     
     // 음성 합성 시작
     synth.speak(utterance);
 }
 
+//보드 반대로 보여주는 함수
 function reverseBoard(board) {
     let reversedBoard = board.slice().reverse().map(row => row.slice().reverse());
     return reversedBoard;
