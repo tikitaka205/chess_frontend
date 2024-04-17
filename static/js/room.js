@@ -3,6 +3,8 @@
 const token = localStorage.getItem('access');
 
 var host="127.0.0.1:8000"
+// var host="blindchess.shop"
+// const hostUrl = "http://blindchess.shop"
 
 // let recognition; // 음성 인식 객체를 전역 변수로 선언
 // let isRecognizing = false; // 음성 인식 중인지 여부를 나타내는 변수
@@ -238,6 +240,8 @@ chatSocket.onmessage = function(e) {
         $('#alarm').append(temp_html)
         // readTextOutLoud(alarm);
         return
+    }else{
+        return
     }
 
 }
@@ -396,7 +400,8 @@ function MoveHorse(str) {
             }))
         }
     } else {
-        setTimeout(MoveHorse)
+        // setTimeout(MoveHorse)
+        return
     }
     horseInputDom.value = '';
 };

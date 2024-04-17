@@ -24,7 +24,13 @@ function RankGame() {
 // 완
 function MakeGame() {
     let user_id = payload['user_id']
+    console.log("누름")
+    console.log("user_id",user_id)
     $.ajax({
+        headers: {
+            // 'content-type': 'application/json',
+            // "Authorization": "Bearer " + localStorage.getItem("access"),
+        },
         type: 'post',
         url: `${hostUrl}/chess/`,
         data: {"user_id":user_id},
@@ -41,6 +47,9 @@ function MakeGame() {
             console.log("board", board)
             window.location.href = "/chat/room.html"
         },
+        error: function(error) {
+            console.error('Error deleting user:', error);
+            }
     });
     };
 
